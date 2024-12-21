@@ -1,0 +1,65 @@
+-- Veritabanını oluştur
+CREATE DATABASE IF NOT EXISTS kasadefteri CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE kasadefteri;
+
+-- Kullanıcılar tablosu
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    firstName VARCHAR(50) NOT NULL,
+    lastName VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255),
+    googleId VARCHAR(255) UNIQUE,
+    avatar VARCHAR(255),
+    role ENUM('user', 'admin', 'superadmin') NOT NULL DEFAULT 'user',
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Kategoriler tablosu
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    type ENUM('income', 'expense') NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Kasa türleri tablosu
+CREATE TABLE IF NOT EXISTS register_types (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- İşlemler tablosu
+CREATE TABLE IF NOT EXISTS transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    type ENUM('income', 'expense') NOT NULL,
+    description TEXT,
+    categoryId INT NOT NULL,
+    registerType INT NOT NULL,
+    transactionDate DATETIME NOT NULL,
+    isDayEnd BOOLEAN DEFAULT FALSE,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id),
+    FOREIGN KEY (categoryId) REFERENCES categories(id),
+    FOREIGN KEY (registerType) REFERENCES register_types(id)
+) ENGINE=InnoDB;
+
+-- Gün sonu tablosu
+CREATE TABLE IF NOT EXISTS day_ends (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATE NOT NULL,
+    userId INT NOT NULL,
+    shortage DECIMAL(10,2) DEFAULT 0,
+    excess DECIMAL(10,2) DEFAULT 0,
+    notes TEXT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id)
+) ENGINE=InnoDB;
