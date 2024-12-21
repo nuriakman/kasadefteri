@@ -134,16 +134,10 @@
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-3">
                   <q-input
-                    v-model="newUser.firstName"
-                    label="Ad"
-                    :rules="[val => !!val || 'Ad gerekli']"
-                  />
-                </div>
-                <div class="col-12 col-md-3">
-                  <q-input
-                    v-model="newUser.lastName"
-                    label="Soyad"
-                    :rules="[val => !!val || 'Soyad gerekli']"
+                    outlined
+                    v-model="newUser.userName"
+                    :rules="[val => !!val || 'Kullanıcı adı zorunludur']"
+                    label="Kullanıcı Adı"
                   />
                 </div>
                 <div class="col-12 col-md-3">
@@ -225,10 +219,10 @@ const loading = ref({
 const newCategory = ref({ name: '', type: null });
 const newRegisterType = ref({ name: '' });
 const newUser = ref({
-  firstName: '',
-  lastName: '',
+  userName: '',
   email: '',
-  role: null
+  role: 'user',
+  avatar: ''
 });
 
 // Veriler
@@ -239,19 +233,11 @@ const users = ref([]);
 // Kullanıcı tablosu sütunları
 const userColumns = [
   {
-    name: 'firstName',
+    name: 'userName',
     required: true,
-    label: 'Ad',
+    label: 'Kullanıcı Adı',
     align: 'left',
-    field: 'firstName',
-    sortable: true
-  },
-  {
-    name: 'lastName',
-    required: true,
-    label: 'Soyad',
-    align: 'left',
-    field: 'lastName',
+    field: 'userName',
     sortable: true
   },
   {
@@ -390,10 +376,10 @@ const handleAddUser = async () => {
     await api.post('/users', newUser.value);
     await loadData();
     newUser.value = {
-      firstName: '',
-      lastName: '',
+      userName: '',
       email: '',
-      role: null
+      role: 'user',
+      avatar: ''
     };
     $q.notify({
       type: 'positive',

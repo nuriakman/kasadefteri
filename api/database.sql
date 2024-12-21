@@ -5,8 +5,7 @@ USE kasadefteri;
 -- Kullanıcılar tablosu
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    firstName VARCHAR(50) NOT NULL,
-    lastName VARCHAR(50) NOT NULL,
+    userName VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255),
     googleId VARCHAR(255) UNIQUE,

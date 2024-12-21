@@ -1,102 +1,124 @@
 <template>
   <q-page class="flex flex-center">
-    <q-card class="login-card">
-      <q-card-section class="text-center">
-        <div class="text-h5 q-mb-md">Kasa Defteri</div>
-        <div class="text-subtitle2">Giriş Yap</div>
-      </q-card-section>
+    <div class="column q-gutter-y-md" style="max-width: 400px">
+      <q-card class="q-pa-lg">
+        <q-card-section>
+          <div class="text-h6 text-center">Giriş Yap</div>
+        </q-card-section>
 
-      <q-card-section>
-        <q-form @submit="handleLogin" class="q-gutter-md">
-          <q-input
-            v-model="email"
-            type="email"
-            label="E-posta"
-            :rules="[
-              val => !!val || 'E-posta gerekli',
-              val => /^[^@]+@[^@]+\.[^@]+$/.test(val) || 'Geçerli bir e-posta adresi girin'
-            ]"
-          />
-
-          <q-input
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            label="Şifre"
-            :rules="[val => !!val || 'Şifre gerekli']"
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="showPassword ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="showPassword = !showPassword"
-              />
-            </template>
-          </q-input>
-
-          <div class="full-width q-pt-md">
-            <q-btn
-              label="Giriş Yap"
-              type="submit"
-              color="primary"
-              class="full-width"
-              :loading="loading"
+        <q-card-section>
+          <q-form @submit="onSubmit" class="q-gutter-y-md">
+            <q-input
+              v-model="email"
+              type="email"
+              label="E-posta"
+              :rules="[(val) => !!val || 'E-posta gerekli']"
             />
-          </div>
-        </q-form>
-      </q-card-section>
 
-      <q-card-section class="text-center q-pt-none">
-        <div class="text-subtitle2 q-mb-sm">veya</div>
-        <GoogleLogin />
-      </q-card-section>
-    </q-card>
+            <q-input
+              v-model="password"
+              :type="isPwd ? 'password' : 'text'"
+              label="Şifre"
+              :rules="[(val) => !!val || 'Şifre gerekli']"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd = !isPwd"
+                />
+              </template>
+            </q-input>
+
+            <div>
+              <q-btn type="submit" color="primary" label="Giriş Yap" class="full-width" />
+            </div>
+          </q-form>
+        </q-card-section>
+
+        <q-card-section class="text-center">
+          <div class="text-grey-6 q-mb-md">veya</div>
+          <q-btn flat color="primary" class="full-width" @click="loginWithGoogle">
+            <q-icon name="img:https://www.google.com/favicon.ico" class="q-mr-sm" />
+            Google ile Giriş Yap
+          </q-btn>
+        </q-card-section>
+      </q-card>
+    </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useQuasar } from 'quasar';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from 'src/stores/auth';
-import GoogleLogin from 'components/GoogleLogin.vue';
+import { ref } from 'vue'
+import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth'
+import type { LoginCredentials, GoogleLoginResponse } from 'src/interfaces/AuthTypes'
 
-const $q = useQuasar();
-const router = useRouter();
-const authStore = useAuthStore();
+defineOptions({
+  name: 'LoginPage'
+})
 
-const email = ref('');
-const password = ref('');
-const showPassword = ref(false);
-const loading = ref(false);
+const $q = useQuasar()
+const router = useRouter()
+const authStore = useAuthStore()
 
-const handleLogin = async () => {
-  loading.value = true;
+const email = ref('')
+const password = ref('')
+const isPwd = ref(true)
+
+const onSubmit = async () => {
   try {
-    const success = await authStore.login(email.value, password.value);
-    if (success) {
-      router.push('/');
-      $q.notify({
-        type: 'positive',
-        message: 'Giriş başarılı!'
-      });
-    } else {
-      throw new Error('Giriş başarısız');
+    const credentials: LoginCredentials = {
+      email: email.value,
+      password: password.value,
     }
-  } catch (error) {
+    await authStore.login(credentials)
+    router.push('/')
+  } catch (error: any) {
     $q.notify({
       type: 'negative',
-      message: 'E-posta veya şifre hatalı'
-    });
-  } finally {
-    loading.value = false;
+      message: error.message || 'Giriş başarısız',
+    })
   }
-};
-</script>
-
-<style scoped>
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 20px;
 }
-</style>
+
+const loginWithGoogle = async () => {
+  try {
+    // Google client yükleniyor
+    await new Promise((resolve) => {
+      const script = document.createElement('script')
+      script.src = 'https://accounts.google.com/gsi/client'
+      script.onload = resolve
+      document.head.appendChild(script)
+    })
+
+    // Google client başlatılıyor
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      scope: 'email profile',
+      callback: async (response: any) => {
+        if (response.access_token) {
+          try {
+            await authStore.loginWithGoogle(response.access_token)
+            router.push('/')
+          } catch (error: any) {
+            $q.notify({
+              type: 'negative',
+              message: error.message || 'Google ile giriş başarısız',
+            })
+          }
+        }
+      },
+    })
+
+    // Google giriş penceresini aç
+    client.requestAccessToken()
+  } catch (error: any) {
+    $q.notify({
+      type: 'negative',
+      message: 'Google giriş işlemi başlatılamadı',
+    })
+  }
+}
+</script>

@@ -1,0 +1,269 @@
+openapi: 3.0.0
+info:
+  title: Kasa Defteri API
+  description: |
+    Kasa Defteri uygulaması için RESTful API dokümantasyonu.
+    Bu API, kasa işlemlerini yönetmek için gerekli tüm endpointleri sağlar.
+  version: 1.0.0
+  contact:
+    name: Kasa Defteri Support
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.kasadefteri.com
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Hata mesajı
+        code:
+          type: integer
+          description: Hata kodu
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Kullanıcı ID
+        userName:
+          type: string
+          description: Kullanıcı adı
+        email:
+          type: string
+          format: email
+          description: E-posta adresi
+        role:
+          type: string
+          enum: [user, admin, superadmin]
+          description: Kullanıcı rolü
+        avatar:
+          type: string
+          description: Profil fotoğrafı URL'i
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: İşlem ID
+        userId:
+          type: integer
+          description: İşlemi yapan kullanıcı ID
+        amount:
+          type: number
+          format: float
+          description: İşlem tutarı (TL)
+        type:
+          type: string
+          enum: [income, expense]
+          description: İşlem tipi (gelir/gider)
+        description:
+          type: string
+          description: İşlem açıklaması
+        categoryId:
+          type: integer
+          description: Kategori ID
+        registerType:
+          type: integer
+          description: Kasa türü ID
+        transactionDate:
+          type: string
+          format: date-time
+          description: İşlem tarihi
+        isDayEnd:
+          type: boolean
+          description: Gün sonu işlemi mi?
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Kimlik Doğrulama
+      summary: Kullanıcı girişi
+      description: E-posta ve şifre ile giriş yapma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Başarılı giriş
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '401':
+          description: Geçersiz kimlik bilgileri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/google:
+    post:
+      tags:
+        - Kimlik Doğrulama
+      summary: Google ile giriş
+      description: Google token ile giriş yapma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - googleToken
+              properties:
+                googleToken:
+                  type: string
+      responses:
+        '200':
+          description: Başarılı giriş
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '401':
+          description: Geçersiz Google token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transactions:
+    get:
+      tags:
+        - İşlemler
+      summary: İşlem listesi
+      description: Kullanıcının işlemlerini listeler
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          description: Başlangıç tarihi (GG.AA.YYYY)
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          description: Bitiş tarihi (GG.AA.YYYY)
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [income, expense]
+          description: İşlem tipi (gelir/gider)
+      responses:
+        '200':
+          description: İşlem listesi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Yetkisiz erişim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - İşlemler
+      summary: Yeni işlem oluştur
+      description: Yeni bir kasa işlemi oluşturur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - type
+                - categoryId
+                - registerType
+                - transactionDate
+              properties:
+                amount:
+                  type: number
+                  format: float
+                  description: İşlem tutarı (TL)
+                type:
+                  type: string
+                  enum: [income, expense]
+                  description: İşlem tipi (gelir/gider)
+                description:
+                  type: string
+                  description: İşlem açıklaması
+                categoryId:
+                  type: integer
+                  description: Kategori ID
+                registerType:
+                  type: integer
+                  description: Kasa türü ID
+                transactionDate:
+                  type: string
+                  format: date-time
+                  description: İşlem tarihi
+                isDayEnd:
+                  type: boolean
+                  description: Gün sonu işlemi mi?
+      responses:
+        '201':
+          description: İşlem başarıyla oluşturuldu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Geçersiz istek
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Yetkisiz erişim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

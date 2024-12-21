@@ -30,16 +30,16 @@ class AuthController {
                 
                 http_response_code(200);
                 echo json_encode([
+                    'status' => 'success',
                     'message' => 'Giriş başarılı',
-                    'token' => $token,
                     'user' => [
                         'id' => $this->user->id,
-                        'firstName' => $this->user->firstName,
-                        'lastName' => $this->user->lastName,
+                        'userName' => $this->user->userName,
                         'email' => $this->user->email,
                         'role' => $this->user->role,
                         'avatar' => $this->user->avatar
-                    ]
+                    ],
+                    'token' => $token
                 ]);
             } else {
                 http_response_code(401);
@@ -79,16 +79,16 @@ class AuthController {
 
                     http_response_code(200);
                     echo json_encode([
+                        'status' => 'success',
                         'message' => 'Giriş başarılı',
-                        'token' => $token,
                         'user' => [
                             'id' => $this->user->id,
-                            'firstName' => $this->user->firstName,
-                            'lastName' => $this->user->lastName,
+                            'userName' => $this->user->userName,
                             'email' => $this->user->email,
                             'role' => $this->user->role,
                             'avatar' => $this->user->avatar
-                        ]
+                        ],
+                        'token' => $token
                     ]);
                 } else {
                     throw new Exception('Kullanıcı kaydedilemedi');

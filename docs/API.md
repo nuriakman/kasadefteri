@@ -21,8 +21,7 @@ Kullanıcı girişi için kullanılır.
 {
   "user": {
     "id": "number",
-    "firstName": "string",
-    "lastName": "string",
+    "userName": "string",
     "email": "string",
     "role": "user | admin | superadmin",
     "avatar": "string?"
@@ -54,8 +53,7 @@ Google ile giriş için kullanılır.
 {
   "user": {
     "id": "number",
-    "firstName": "string",
-    "lastName": "string",
+    "userName": "string",
     "email": "string",
     "role": "user | admin | superadmin",
     "avatar": "string?"
@@ -107,8 +105,7 @@ Authorization: Bearer <token>
 {
   "user": {
     "id": "number",
-    "firstName": "string",
-    "lastName": "string",
+    "userName": "string",
     "email": "string",
     "role": "user | admin | superadmin",
     "avatar": "string?"

@@ -15,7 +15,7 @@
           Kasa Defteri
         </q-toolbar-title>
 
-        <q-btn-dropdown flat color="white" :label="user?.firstName">
+        <q-btn-dropdown flat color="white" :label="user?.userName">
           <q-list>
             <q-item clickable v-close-popup @click="handleLogout">
               <q-item-section>

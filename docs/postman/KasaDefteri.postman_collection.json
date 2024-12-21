@@ -55,7 +55,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"user\": {\n    \"id\": 1,\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"user@example.com\",\n    \"role\": \"user\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n  },\n  \"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\"\n}"
+              "body": "{\n  \"user\": {\n    \"id\": 1,\n    \"userName\": \"johndoe\",\n    \"email\": \"user@example.com\",\n    \"role\": \"user\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n  },\n  \"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\"\n}"
             }
           ]
         },
@@ -105,7 +105,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"user\": {\n    \"id\": 1,\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"user@example.com\",\n    \"role\": \"user\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n  },\n  \"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\"\n}"
+              "body": "{\n  \"user\": {\n    \"id\": 1,\n    \"userName\": \"johndoe\",\n    \"email\": \"user@example.com\",\n    \"role\": \"user\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n  },\n  \"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\"\n}"
             }
           ]
         },
@@ -199,7 +199,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"user\": {\n    \"id\": 1,\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"user@example.com\",\n    \"role\": \"user\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n  }\n}"
+              "body": "{\n  \"user\": {\n    \"id\": 1,\n    \"userName\": \"johndoe\",\n    \"email\": \"user@example.com\",\n    \"role\": \"user\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n  }\n}"
             }
           ]
         }

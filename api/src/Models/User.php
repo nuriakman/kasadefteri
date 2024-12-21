@@ -1,4 +1,6 @@
 <?php
+namespace App\Models;
+
 class User {
     // Veritabanı bağlantısı ve tablo adı
     private $conn;
@@ -6,13 +8,12 @@ class User {
 
     // Nesne özellikleri
     public $id;
-    public $firstName;
-    public $lastName;
+    public $userName;
     public $email;
     public $password;
     public $googleId;
-    public $avatar;
     public $role;
+    public $avatar;
     public $createdAt;
     public $updatedAt;
 
@@ -24,34 +25,35 @@ class User {
     public function create() {
         $query = "INSERT INTO " . $this->table_name . "
                 SET
-                    firstName = :firstName,
-                    lastName = :lastName,
+                    userName = :userName,
                     email = :email,
                     password = :password,
                     role = :role,
+                    avatar = :avatar,
                     createdAt = :createdAt,
                     updatedAt = :updatedAt";
 
         $stmt = $this->conn->prepare($query);
 
-        // Değerleri temizle
-        $this->firstName = htmlspecialchars(strip_tags($this->firstName));
-        $this->lastName = htmlspecialchars(strip_tags($this->lastName));
+        // Sanitize
+        $this->userName = htmlspecialchars(strip_tags($this->userName));
         $this->email = htmlspecialchars(strip_tags($this->email));
-        
-        // Şifre varsa hashle
+        $this->password = htmlspecialchars(strip_tags($this->password));
+        $this->role = htmlspecialchars(strip_tags($this->role));
+        $this->avatar = htmlspecialchars(strip_tags($this->avatar));
+
+        // Hash password
         $password_hash = null;
         if ($this->password) {
-            $this->password = htmlspecialchars(strip_tags($this->password));
             $password_hash = password_hash($this->password, PASSWORD_BCRYPT);
         }
 
-        // Değerleri bağla
-        $stmt->bindParam(":firstName", $this->firstName);
-        $stmt->bindParam(":lastName", $this->lastName);
+        // Bind values
+        $stmt->bindParam(":userName", $this->userName);
         $stmt->bindParam(":email", $this->email);
         $stmt->bindParam(":password", $password_hash);
         $stmt->bindParam(":role", $this->role);
+        $stmt->bindParam(":avatar", $this->avatar);
         $stmt->bindParam(":createdAt", date('Y-m-d H:i:s'));
         $stmt->bindParam(":updatedAt", date('Y-m-d H:i:s'));
 
@@ -71,11 +73,10 @@ class User {
 
         if ($stmt->rowCount() > 0) {
             // Kullanıcı varsa güncelle
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             $query = "UPDATE " . $this->table_name . "
                     SET
-                        firstName = :firstName,
-                        lastName = :lastName,
+                        userName = :userName,
                         email = :email,
                         avatar = :avatar,
                         updatedAt = :updatedAt
@@ -87,8 +88,7 @@ class User {
             // Yeni kullanıcı oluştur
             $query = "INSERT INTO " . $this->table_name . "
                     SET
-                        firstName = :firstName,
-                        lastName = :lastName,
+                        userName = :userName,
                         email = :email,
                         googleId = :googleId,
                         avatar = :avatar,
@@ -103,18 +103,21 @@ class User {
         }
 
         // Ortak alanları bağla
-        $stmt->bindParam(":firstName", $googleData['given_name']);
-        $stmt->bindParam(":lastName", $googleData['family_name']);
+        $userName = explode('@', $googleData['email'])[0];
+        $stmt->bindParam(":userName", $userName);
         $stmt->bindParam(":email", $googleData['email']);
         $stmt->bindParam(":avatar", $googleData['picture']);
         $stmt->bindParam(":updatedAt", date('Y-m-d H:i:s'));
 
-        return $stmt->execute();
+        if($stmt->execute()) {
+            return $this->findByGoogleId($googleData['id']);
+        }
+        return false;
     }
 
     // Google ID ile kullanıcı getir
-    public function getByGoogleId($googleId) {
-        $query = "SELECT id, firstName, lastName, email, role, avatar
+    public function findByGoogleId($googleId) {
+        $query = "SELECT id, userName, email, role, avatar
                 FROM " . $this->table_name . "
                 WHERE googleId = ?
                 LIMIT 0,1";
@@ -124,11 +127,10 @@ class User {
         $stmt->execute();
 
         if($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             $this->id = $row['id'];
-            $this->firstName = $row['firstName'];
-            $this->lastName = $row['lastName'];
+            $this->userName = $row['userName'];
             $this->email = $row['email'];
             $this->role = $row['role'];
             $this->avatar = $row['avatar'];
@@ -139,23 +141,21 @@ class User {
     }
 
     // Email ile kullanıcı kontrolü
-    public function emailExists() {
-        $query = "SELECT id, firstName, lastName, password, role, avatar
+    public function findByEmail($email) {
+        $query = "SELECT id, userName, password, role, avatar
                 FROM " . $this->table_name . "
                 WHERE email = ?
                 LIMIT 0,1";
 
         $stmt = $this->conn->prepare($query);
-        $this->email = htmlspecialchars(strip_tags($this->email));
-        $stmt->bindParam(1, $this->email);
+        $stmt->bindParam(1, $email);
         $stmt->execute();
 
         if($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             $this->id = $row['id'];
-            $this->firstName = $row['firstName'];
-            $this->lastName = $row['lastName'];
+            $this->userName = $row['userName'];
             $this->password = $row['password'];
             $this->role = $row['role'];
             $this->avatar = $row['avatar'];
